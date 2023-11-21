@@ -4,8 +4,6 @@ let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
-
-
 public_users.post("/register", (req,res) => {
   const username = req.body.username;
   const password = req.body.password;
@@ -21,42 +19,117 @@ public_users.post("/register", (req,res) => {
   return res.status(404).json({message: "Unable to register user."});
 });
 
-// Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  res.send(JSON.stringify(books,null,4));
+public_users.get('/', function (req, res) {
+  const sendResponsePromise = new Promise((resolve, reject) => {
+    try {
+      const jsonResponse = JSON.stringify(books, null, 4);
+      res.send(jsonResponse);
+      resolve(jsonResponse);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+  sendResponsePromise
+    .then((result) => {
+      console.log('Response sent successfully:', result);
+    })
+    .catch((error) => {
+      console.error('Error sending response:', error);
+    });
 });
 
-// Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
+
+public_users.get('/isbn/:isbn', function (req, res) {
   const isbn = req.params.isbn;
-  res.send(books[isbn])
- });
+
+  const sendResponsePromise = new Promise((resolve, reject) => {
+    try {
+      const book = books[isbn];
+
+      if (book) {
+        res.send(book);
+        resolve(book);
+      } else {
+        const errorMessage = `Book with ISBN ${isbn} not found`;
+        res.status(404).send(errorMessage);
+        reject(new Error(errorMessage));
+      }
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+  sendResponsePromise
+    .then((result) => {
+      console.log('Response sent successfully:', result);
+    })
+    .catch((error) => {
+      console.error('Error sending response:', error);
+    });
+});
   
-// Get book details based on author
-public_users.get('/author/:author',function (req, res) {
+public_users.get('/author/:author', function (req, res) {
   const requestedAuthor = req.params.author;
-  for (let key in books) {
-    if (books.hasOwnProperty(key) && books[key].author === requestedAuthor) {
-      res.send(books[key]);
-      return;
+
+  const findAuthorPromise = new Promise((resolve, reject) => {
+    try {
+      for (let key in books) {
+        if (books.hasOwnProperty(key) && books[key].author === requestedAuthor) {
+          const foundBook = books[key];
+          res.send(foundBook);
+          resolve(foundBook);
+          return;
+        }
+      }
+      const errorMessage = `Author ${requestedAuthor} not found`;
+      res.status(404).send(errorMessage);
+      reject(new Error(errorMessage));
+    } catch (error) {
+      reject(error);
     }
-  }
-  res.send("Author not found");
+  });
+
+  findAuthorPromise
+    .then((result) => {
+      console.log('Response sent successfully:', result);
+    })
+    .catch((error) => {
+      console.error('Error sending response:', error);
+    });
 });
 
-// Get all books based on title
-public_users.get('/title/:title',function (req, res) {
+public_users.get('/title/:title', function (req, res) {
   const requestedTitle = req.params.title;
-  for (let key in books) {
-    if (books.hasOwnProperty(key) && books[key].title === requestedTitle) {
-      res.send(books[key]);
-      return;
+
+  const findTitlePromise = new Promise((resolve, reject) => {
+    try {
+      for (let key in books) {
+        if (books.hasOwnProperty(key) && books[key].title === requestedTitle) {
+          const foundBook = books[key];
+          res.send(foundBook);
+          resolve(foundBook);
+          return;
+        }
+      }
+      const errorMessage = `Title ${requestedTitle} not found`;
+      res.status(404).send(errorMessage);
+      reject(new Error(errorMessage));
+    } catch (error) {
+      reject(error);
     }
-  }
-  res.send("Title not found");
+  });
+
+  findTitlePromise
+    .then((result) => {
+      console.log('Response sent successfully:', result);
+    })
+    .catch((error) => {
+      console.error('Error sending response:', error);
+    });
 });
 
-//  Get book review
+
 public_users.get('/review/:isbn',function (req, res) {
   const isbn = req.params.isbn;
   if (books.hasOwnProperty(isbn)) {
